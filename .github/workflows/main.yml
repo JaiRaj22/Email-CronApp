@@ -1,29 +1,38 @@
-name: CI/CD for Node.js Application
+name: ci
 
 on:
   push:
-    branches: [ main ]  # Replace "main" with your main branch name
+    branches:
+      - main
 
 jobs:
   build:
-    runs-on: ubuntu-latest  # You can specify a different runner OS if needed
-
+    runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3  # Checkout your code from the repository
-      - name: Use Node.js 20
-        uses: actions/setup-node@v3
+      -
+        name: Checkout
+        uses: actions/checkout@v4
+      -
+        name: Login to Docker Hub
+        uses: docker/login-action@v3
         with:
-          node-version: 20  # Change this to your desired Node.js version
-      - name: Install dependencies
-        run: npm install  # Adjust the command if you use a different package manager
-      - name: Build the Docker image
-        run: docker build -t davisxerg/email-cronapp .  # Replace with your Docker Hub username and desired image name
-      - name: Push the Docker image to Docker Hub (if on push)
-        uses: docker/push-action@v3
+          username: ${{ secrets.DOCKERHUB_USERNAME  }}
+          password: ${{ secrets.DOCKERHUB_PASSWORD  }}
+      -
+        name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      -
+        name: Build and test
+        uses: docker/build-push-action@v5
         with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_PASSWORD }}
-          repository: JaiRaj22/Email-CronApp
-        # Only run this step on push events to avoid unnecessary pushes
-        if: github.event_name == 'push'
-
+          context: .
+          load: true
+      -
+        name: Build and push
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64/v8
+          target: PROD
+          push: true
+          tags: ${{ secrets.DAVISXERG }}/${{ github.event.repository.name }}:latest # Adds a version based on commit hash
