@@ -23,7 +23,7 @@ jobs:
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_PASSWORD }}
-          repository: JaiRaj22/email-cronapp
+          repository: JaiRaj22/Email-CronApp
         # Only run this step on push events to avoid unnecessary pushes
         if: github.event_name == 'push'
 
